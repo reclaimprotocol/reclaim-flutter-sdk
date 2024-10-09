@@ -1,10 +1,13 @@
-import 'package:reclaim_sdk/types.dart';
-import 'package:reclaim_sdk/witness.dart';
+import 'dart:convert';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
-import 'package:reclaim_sdk/contract_data/abi.dart';
+import 'utils/interfaces.dart';
+import 'contract_data/abi.dart';
+import 'utils/logger.dart';
 
-const int defaultChainId = 11155420;
+var logger = ReclaimLogger();
+
+const int DEFAULT_CHAIN_ID = 11155420;
 final existingContractsMap = <String, DeployedContract>{};
 final contractConfig = {
   "0x1a4": {
@@ -21,13 +24,71 @@ final contractConfig = {
   }
 };
 
-Future<BeaconState> makeBeacon() async {
-  final String chainKey = '0x${defaultChainId.toRadixString(16)}';
-  final contract = getContract(defaultChainId);
-  final contractData = contractConfig[chainKey]!;
-  final client = Web3Client(contractData['rpcUrl']!, Client());
-  final epochData = await fetchEpochData(contract!, client);
-  return epochData;
+Future<Beacon?> makeBeacon({int? chainId}) async {
+  chainId ??= DEFAULT_CHAIN_ID;
+  final contract = getContract(chainId);
+  if (contract != null) {
+    final contractData = contractConfig['0x${chainId.toRadixString(16)}']!;
+    final client = Web3Client(contractData['rpcUrl']!, Client());
+    final epochData = await fetchEpochData(contract, client);
+    return BeaconImpl(contract, epochData);
+  } else {
+    return null;
+  }
+}
+
+class BeaconImpl implements Beacon {
+  final DeployedContract _contract;
+  final BeaconState _state;
+
+  BeaconImpl(this._contract, this._state);
+
+  @override
+  Future<BeaconState> getState({int? epoch}) async {
+    if (epoch == null || epoch == _state.epoch) {
+      return _state;
+    }
+    final client = Web3Client(
+        contractConfig['0x${DEFAULT_CHAIN_ID.toRadixString(16)}']!['rpcUrl']!,
+        Client());
+    return fetchEpochData(_contract, client, epoch);
+  }
+
+  @override
+  Future<void> close() async {
+    // No need to implement close for Web3Dart
+  }
+}
+
+Beacon makeBeaconCacheable(Beacon beacon) {
+  final cache = <int, Future<BeaconState>>{};
+
+  return _CacheableBeacon(beacon, cache);
+}
+
+class _CacheableBeacon implements Beacon {
+  final Beacon _beacon;
+  final Map<int, Future<BeaconState>> _cache;
+
+  _CacheableBeacon(this._beacon, this._cache);
+
+  @override
+  Future<BeaconState> getState({int? epoch}) async {
+    if (epoch == null) {
+      return await _beacon.getState();
+    }
+
+    if (!_cache.containsKey(epoch)) {
+      _cache[epoch] = _beacon.getState(epoch: epoch);
+    }
+
+    return await _cache[epoch]!;
+  }
+
+  @override
+  Future<void> close() async {
+    await _beacon.close();
+  }
 }
 
 DeployedContract? getContract(int chainId) {
@@ -50,9 +111,7 @@ DeployedContract? getContract(int chainId) {
 
 Future<BeaconState> fetchEpochData(DeployedContract contract, Web3Client client,
     [int epochId = 0]) async {
-  // Define the function you want to call
   final function = contract.function('fetchEpoch');
-  // Call the contract function
   final response = await client.call(
     contract: contract,
     function: function,
@@ -60,6 +119,7 @@ Future<BeaconState> fetchEpochData(DeployedContract contract, Web3Client client,
   );
 
   if (response[0] == null) {
+    logger.info('Invalid epoch ID: $epochId');
     throw Exception('Invalid epoch ID: $epochId');
   }
 
