@@ -100,3 +100,35 @@ Future<UpdateSessionResponse> updateSession(
         'Error updating session with sessionId: $sessionId');
   }
 }
+
+/// Fetches the status URL for a given session ID
+///
+/// @param sessionId - The ID of the session to fetch the status URL for
+/// @returns A Future that resolves to a StatusUrlResponse
+/// @throws StatusUrlError if the status URL fetch fails
+Future<StatusUrlResponse> fetchStatusUrl(String sessionId) async {
+  try {
+    validateFunctionParams([
+      ParamValidation(input: sessionId, paramName: 'sessionId', isString: true)
+    ], 'fetchStatusUrl');
+
+    final response = await http.get(
+      Uri.parse('${Constants.DEFAULT_RECLAIM_STATUS_URL}$sessionId'),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    final res = jsonDecode(response.body);
+
+    if (response.statusCode != 200) {
+      logger.info(
+          'Error fetching status URL for sessionId: $sessionId. Status Code: ${response.statusCode}');
+      throw statusUrlError(
+          'Error fetching status URL for sessionId: $sessionId');
+    }
+
+    return StatusUrlResponse.fromJson(res);
+  } catch (err) {
+    logger.info('Failed to fetch status URL for sessionId: $sessionId');
+    throw statusUrlError('Error fetching status URL for sessionId: $sessionId');
+  }
+}

@@ -50,3 +50,4 @@ final setAppCallbackUrlError = _createErrorClass('SetAppCallbackUrlError');
 final setRedirectUrlError = _createErrorClass('SetRedirectUrlError');
 final getRequestedProofError = _createErrorClass('GetRequestedProofError');
 final sessionTimeoutError = _createErrorClass('SessionTimeoutError');
+final statusUrlError = _createErrorClass('StatusUrlError');

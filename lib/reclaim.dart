@@ -277,7 +277,7 @@ class ReclaimProofRequest {
     }
   }
 
-  void setParams(Map<String, dynamic> params) {
+  void setParams(Map<String, String> params) {
     try {
       final requestedProof = _getRequestedProof();
       if (_requestedProof == null) {
@@ -295,6 +295,11 @@ class ReclaimProofRequest {
         if (!currentParams.contains(param)) {
           throw invalidParamError(
               'Cannot set parameter $param for provider $_providerId. Available parameters: $currentParams');
+        }
+        // check if value is String
+        if (params[param] is! String) {
+          throw invalidParamError(
+              'Cannot set parameter $param for provider $_providerId. Value must be a string.');
         }
       }
       _requestedProof!.parameters = {...requestedProof.parameters, ...params};
@@ -342,7 +347,6 @@ class ReclaimProofRequest {
     required Function(Proof) onSuccess,
     required Function(Exception) onError,
   }) async {
-    final statusUrl = getStatusUrl();
     if (_sessionId.isEmpty) {
       const message =
           "Session can't be started due to undefined value of sessionId";
@@ -353,17 +357,16 @@ class ReclaimProofRequest {
     logger.info('Starting session');
     final timer = Timer.periodic(const Duration(seconds: 3), (timer) async {
       try {
-        final response = await http.get(Uri.parse(statusUrl));
-        final data = jsonDecode(response.body);
+        final statusResponse = await fetchStatusUrl(_sessionId);
 
-        if (data['session'] == null) return;
-        if (data['session']['status'] ==
+        if (statusResponse.session == null) return;
+        if (statusResponse.session!.statusV2 ==
             SessionStatus.PROOF_GENERATION_FAILED.toString()) {
           throw providerFailedError('Provider failed to generate proof');
         }
-        if (data['session']['proofs'].isEmpty) return;
+        if (statusResponse.session!.proofs!.isEmpty) return;
 
-        final proof = Proof.fromJson(data['session']['proofs'][0]);
+        final proof = statusResponse.session!.proofs![0];
         final verified = await verifyProof(proof);
         if (!verified) {
           logger.info('Proof not verified: $proof');

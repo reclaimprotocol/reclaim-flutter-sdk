@@ -21,13 +21,13 @@ class _ReclaimExampleState extends State<ReclaimExample> {
   String _proofData = '';
 
   // Reclaim SDK Methods:
-  // 1. ReclaimProofRequest.init() - Initialize a new proof request
-  // 2. reclaimProofRequest.addContext() - Add context to the proof request
-  // 3. reclaimProofRequest.setRedirectUrl() - Set the redirect URL
-  // 4. reclaimProofRequest.setAppCallbackUrl() - Set the app callback URL
-  // 5. reclaimProofRequest.setParams() - Set the parameters for the proof request
+  // 1. ReclaimProofRequest.init('appId', 'appSecret', 'providerId') - Initialize a new proof request
+  // 2. reclaimProofRequest.addContext('contextId', 'contextMessage') - Add context to the proof request
+  // 3. reclaimProofRequest.setRedirectUrl('redirectUrl') - Set the redirect URL
+  // 4. reclaimProofRequest.setAppCallbackUrl('appCallbackUrl') - Set the app callback URL
+  // 5. reclaimProofRequest.setParams({'paramId1': 'paramValue1', 'paramId2': 'paramValue2'}) - Set the parameters for the proof request
   // 6. reclaimProofRequest.toJsonString() - Convert the request to a JSON string
-  // 7. ReclaimProofRequest.fromJsonString() - Create a request from a JSON string
+  // 7. ReclaimProofRequest.fromJsonString('jsonString') - Create a request from a JSON string
   // 8. reclaimProofRequest.getRequestUrl() - Generate the request URL
   // 9. reclaimProofRequest.getSessionStatus() - Get the session status
   // 10. reclaimProofRequest.startSession() - Start the verification session

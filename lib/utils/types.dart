@@ -98,15 +98,6 @@ class SignedClaim {
 
 typedef QueryParams = Map<String, dynamic>;
 
-class ParsedURL {
-  final String? scheme;
-  final String? hostname;
-  final String? path;
-  final QueryParams? queryParams;
-
-  ParsedURL({this.scheme, this.hostname, this.path, this.queryParams});
-}
-
 class CreateVerificationRequest {
   final List<String> providerIds;
   final String? applicationSecret;
@@ -156,6 +147,26 @@ class UpdateSessionResponse {
   UpdateSessionResponse({this.message});
 }
 
+class StatusUrlResponse {
+  final String message;
+  final Session? session;
+  final String? providerId;
+
+  StatusUrlResponse({
+    required this.message,
+    this.session,
+    this.providerId,
+  });
+
+  factory StatusUrlResponse.fromJson(Map<String, dynamic> json) =>
+      StatusUrlResponse(
+        message: json['message'],
+        session:
+            json['session'] != null ? Session.fromJson(json['session']) : null,
+        providerId: json['providerId'],
+      );
+}
+
 enum SessionStatus {
   SESSION_INIT,
   SESSION_STARTED,
@@ -202,7 +213,7 @@ class TemplateData {
   final String timestamp;
   final String callbackUrl;
   final String context;
-  final Map<String, dynamic> parameters;
+  final Map<String, String> parameters;
   final String redirectUrl;
   final bool acceptAiProviders;
 
@@ -244,4 +255,33 @@ class TemplateData {
         'redirectUrl': redirectUrl,
         'acceptAiProviders': acceptAiProviders,
       };
+}
+
+class Session {
+  final String id;
+  final String appId;
+  final List<String> httpProviderId;
+  final String sessionId;
+  final List<Proof>? proofs;
+  final String statusV2;
+
+  Session({
+    required this.id,
+    required this.appId,
+    required this.httpProviderId,
+    required this.sessionId,
+    this.proofs,
+    required this.statusV2,
+  });
+
+  factory Session.fromJson(Map<String, dynamic> json) => Session(
+        id: json['id'],
+        appId: json['appId'],
+        httpProviderId: List<String>.from(json['httpProviderId']),
+        sessionId: json['sessionId'],
+        proofs: json['proofs'] != null
+            ? (json['proofs'] as List).map((p) => Proof.fromJson(p)).toList()
+            : null,
+        statusV2: json['statusV2'],
+      );
 }
