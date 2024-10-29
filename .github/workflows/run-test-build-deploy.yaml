@@ -120,9 +120,14 @@ jobs:
 
   publish:
     needs: [test_and_build, update_version_and_publish]
-    runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
     permissions:
-      id-token: write
+      id-token: write # Required for authentication using OIDC
+    runs-on: ubuntu-latest
     steps:
-      - uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+      - uses: actions/checkout@v3
+      - uses: dart-lang/setup-dart@v1
+      - name: Install dependencies
+        run: dart pub get
+      - name: Publish
+        run: dart pub publish --force
