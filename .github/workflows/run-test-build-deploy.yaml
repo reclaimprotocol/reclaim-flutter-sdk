@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+*'
   workflow_dispatch:
     inputs:
       release_type:
@@ -117,28 +115,3 @@ jobs:
           # Create and push tag
           git tag "v$NEW_VERSION"
           git push origin main --tags
-
-      - name: Publish
-        run: flutter pub publish --force
-
-  # publish:
-  #   needs: [test_and_build, update_version_and_publish]
-  #   if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
-  #   permissions:
-  #     id-token: write # Required for authentication using OIDC
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: dart-lang/setup-dart@v1
-
-  #     - name: Set up Flutter
-  #       uses: subosito/flutter-action@v2
-  #       with:
-  #         architecture: x64
-  #         channel: 'stable'
-
-  #     - name: Install dependencies
-  #       run: flutter pub get
-
-  #     - name: Publish
-  #       run: flutter pub publish --force
