@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
 import 'utils/interfaces.dart';

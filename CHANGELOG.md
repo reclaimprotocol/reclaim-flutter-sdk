@@ -1,3 +1,3 @@
-## 0.0.1
+## [2.0.0] - 2024-10-29
 
-- Publish the latest version
+- TODO: Add release notes.

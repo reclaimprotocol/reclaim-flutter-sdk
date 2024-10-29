@@ -4,6 +4,9 @@ version: 2.0.0
 homepage: https://www.reclaimprotocol.org/
 repository: https://gitlab.reclaimprotocol.org/reclaim-developer-experience/reclaim-sdk
 
+scripts:
+  update_changelog: dart update_changelog.dart
+
 environment:
   sdk: '>=3.3.0 <4.0.0'
   flutter: '>=1.17.0'
@@ -17,6 +20,7 @@ dependencies:
   uni_links: ^0.5.1
   url_launcher: ^6.2.5
   uuid: ^4.3.3
+  yaml: ^3.1.2
   web3dart: ^2.7.3
 
 dev_dependencies:
