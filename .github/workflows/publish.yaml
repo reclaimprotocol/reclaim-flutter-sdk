@@ -15,7 +15,12 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0  # Fetch all history and tags
-          ref: main  # Checkout main branch to get latest changes
+
+      - name: Get latest tag
+        run: |
+          git fetch --tags
+          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
+          git checkout $latest_tag
 
       - name: Set up Dart
         uses: dart-lang/setup-dart@v1
