@@ -13,6 +13,9 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history and tags
+          ref: main  # Checkout main branch to get latest changes
 
       - name: Set up Dart
         uses: dart-lang/setup-dart@v1
