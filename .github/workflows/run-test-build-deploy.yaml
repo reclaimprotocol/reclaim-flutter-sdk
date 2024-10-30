@@ -112,7 +112,11 @@ jobs:
           git add pubspec.yaml CHANGELOG.md
           git commit -m "chore: bump version to $NEW_VERSION"
           
-          # Create and push tag
+          # Push changes and tag
           git push origin main
           git tag v$NEW_VERSION
           git push origin v$NEW_VERSION
+
+  call_publish:
+    needs: update_version_and_publish
+    uses: ./.github/workflows/publish.yaml
