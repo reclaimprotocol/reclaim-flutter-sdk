@@ -101,7 +101,7 @@ class ReclaimProofRequest {
       ReclaimLogger.setLogLevel(LogLevel.silent);
     }
     _timeStamp = DateTime.now().millisecondsSinceEpoch.toString();
-    _sdkVersion = RECLAIM_SDK_VERSION;
+    _sdkVersion = reclaimSdkVersion;
     logger.info('Initializing client with applicationId: $_applicationId');
   }
 
