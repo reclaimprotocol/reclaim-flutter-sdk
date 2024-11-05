@@ -39,6 +39,14 @@ const String reclaimSdkVersion = 'flutter-$version';
 
     sdkVersionFile.writeAsStringSync(sdkVersionContent);
     print('sdk_version.dart updated with version $version.');
+
+    // Update pubspec.yaml
+    final pubspecFile = File('pubspec.yaml');
+    final pubspecContent = pubspecFile.readAsStringSync();
+    final updatedPubspecContent = pubspecContent.replaceFirst(
+        RegExp(r'version: \d+\.\d+\.\d+'), 'version: $version');
+    pubspecFile.writeAsStringSync(updatedPubspecContent);
+    print('pubspec.yaml updated with version $version.');
   } catch (e) {
     print('Error updating files: $e');
     exit(1);
