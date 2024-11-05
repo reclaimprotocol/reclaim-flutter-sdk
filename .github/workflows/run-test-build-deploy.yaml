@@ -102,14 +102,11 @@ jobs:
             NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
           fi
           
-          # Update pubspec.yaml
-          sed -i "s/version: $CURRENT_VERSION/version: $NEW_VERSION/" pubspec.yaml
-          
           # Update changelog
           dart update_changelog.dart
           
           # Commit changes
-          git add pubspec.yaml CHANGELOG.md
+          git add pubspec.yaml CHANGELOG.md lib/utils/sdk_version.dart
           git commit -m "chore: bump version to $NEW_VERSION"
           
           # Push changes

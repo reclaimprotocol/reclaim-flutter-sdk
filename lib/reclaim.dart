@@ -15,6 +15,7 @@ import 'utils/proof_utils.dart';
 import 'utils/logger.dart';
 import 'utils/helper.dart';
 import 'dart:io';
+import 'utils/sdk_version.dart';
 
 var logger = ReclaimLogger();
 
@@ -100,7 +101,7 @@ class ReclaimProofRequest {
       ReclaimLogger.setLogLevel(LogLevel.silent);
     }
     _timeStamp = DateTime.now().millisecondsSinceEpoch.toString();
-    _sdkVersion = 'flutter-2.1.0';
+    _sdkVersion = RECLAIM_SDK_VERSION;
     logger.info('Initializing client with applicationId: $_applicationId');
   }
 
