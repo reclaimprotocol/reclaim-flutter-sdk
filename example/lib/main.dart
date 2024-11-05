@@ -55,7 +55,7 @@ class _ReclaimExampleState extends State<ReclaimExample> {
     }
 
     final reclaimProofRequest = await ReclaimProofRequest.init(appId, appSecret,
-        providerId, ProofRequestOptions(log: true, acceptAiProviders: false));
+        providerId, ProofRequestOptions(log: true, useAppClip: false));
 
     // reclaimProofRequest.addContext('0x00000000000', 'Example context message');
     // reclaimProofRequest.setRedirectUrl('https://dev.reclaimprotocol.org/');
@@ -93,12 +93,19 @@ class _ReclaimExampleState extends State<ReclaimExample> {
     );
   }
 
-  void _handleProofSuccess(Proof proof) {
+  void _handleProofSuccess(dynamic proof) {
     print('Proof received: $proof');
+    // check if proof is of type String
+    var proofDataValue = '';
+    if (proof is String) {
+      proofDataValue = proof;
+    } else {
+      proofDataValue =
+          'Extracted data: ${proof.claimData.context}\n\nFull proof: ${proof.toString()}';
+    }
     setState(() {
       _status = 'Proof received!';
-      _proofData =
-          'Extracted data: ${proof.claimData.context}\n\nFull proof: ${proof.toString()}';
+      _proofData = proofDataValue;
     });
   }
 

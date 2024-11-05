@@ -112,12 +112,18 @@ class _ReclaimDemoState extends State<ReclaimDemo> {
     );
   }
 
-  void _handleProofSuccess(Proof proof) {
+  void _handleProofSuccess(dynamic proof) {
     print('Proof received: $proof');
+    var proofDataValue = '';
+    if (proof is String) {
+      proofDataValue = proof;
+    } else {
+      proofDataValue =
+          'Extracted data: ${proof.claimData.context}\n\nFull proof: ${proof.toString()}';
+    }
     setState(() {
       _status = 'Proof received!';
-      _proofData =
-          'Extracted data: ${proof.claimData.context}\n\nFull proof: ${proof.toString()}';
+      _proofData = proofDataValue;
     });
   }
 
