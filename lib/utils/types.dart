@@ -119,18 +119,21 @@ class StartSessionParams {
 class ProofRequestOptions {
   final bool? log;
   final bool? acceptAiProviders;
+  final bool? useAppClip;
 
-  ProofRequestOptions({this.log, this.acceptAiProviders});
+  ProofRequestOptions({this.log, this.acceptAiProviders, this.useAppClip});
 
   factory ProofRequestOptions.fromJson(Map<String, dynamic> json) =>
       ProofRequestOptions(
         log: json['log'],
         acceptAiProviders: json['acceptAiProviders'],
+        useAppClip: json['useAppClip'],
       );
 
   Map<String, dynamic> toJson() => {
         'log': log,
         'acceptAiProviders': acceptAiProviders,
+        'useAppClip': useAppClip,
       };
 }
 
@@ -176,33 +179,8 @@ enum SessionStatus {
   PROOF_GENERATION_SUCCESS,
   PROOF_GENERATION_FAILED,
   PROOF_SUBMITTED,
+  PROOF_SUBMISSION_FAILED,
   PROOF_MANUAL_VERIFICATION_SUBMITED;
-}
-
-class ProofPropertiesJSON {
-  final String applicationId;
-  final String providerId;
-  final String sessionId;
-  final Context context;
-  final RequestedProof requestedProof;
-  final String signature;
-  final String? redirectUrl;
-  final String timeStamp;
-  final String? appCallbackUrl;
-  final ProofRequestOptions? options;
-
-  ProofPropertiesJSON({
-    required this.applicationId,
-    required this.providerId,
-    required this.sessionId,
-    required this.context,
-    required this.requestedProof,
-    required this.signature,
-    this.redirectUrl,
-    required this.timeStamp,
-    this.appCallbackUrl,
-    this.options,
-  });
 }
 
 class TemplateData {
@@ -216,6 +194,7 @@ class TemplateData {
   final Map<String, String> parameters;
   final String redirectUrl;
   final bool acceptAiProviders;
+  final String sdkVersion;
 
   TemplateData({
     required this.sessionId,
@@ -228,6 +207,7 @@ class TemplateData {
     required this.parameters,
     required this.redirectUrl,
     required this.acceptAiProviders,
+    required this.sdkVersion,
   });
 
   factory TemplateData.fromJson(Map<String, dynamic> json) => TemplateData(
@@ -241,6 +221,7 @@ class TemplateData {
         parameters: json['parameters'],
         redirectUrl: json['redirectUrl'],
         acceptAiProviders: json['acceptAiProviders'],
+        sdkVersion: json['sdkVersion'],
       );
 
   Map<String, dynamic> toJson() => {
@@ -254,6 +235,7 @@ class TemplateData {
         'parameters': parameters,
         'redirectUrl': redirectUrl,
         'acceptAiProviders': acceptAiProviders,
+        'sdkVersion': sdkVersion,
       };
 }
 

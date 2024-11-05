@@ -14,6 +14,7 @@ import 'utils/session_utils.dart';
 import 'utils/proof_utils.dart';
 import 'utils/logger.dart';
 import 'utils/helper.dart';
+import 'dart:io';
 
 var logger = ReclaimLogger();
 
@@ -88,6 +89,7 @@ class ReclaimProofRequest {
   String? _appCallbackUrl;
   String? _redirectUrl;
   RequestedProof? _requestedProof;
+  String? _sdkVersion;
 
   // Constructor
   ReclaimProofRequest._(this._applicationId, this._providerId, this._options) {
@@ -98,6 +100,7 @@ class ReclaimProofRequest {
       ReclaimLogger.setLogLevel(LogLevel.silent);
     }
     _timeStamp = DateTime.now().millisecondsSinceEpoch.toString();
+    _sdkVersion = 'flutter-2.1.0';
     logger.info('Initializing client with applicationId: $_applicationId');
   }
 
@@ -124,6 +127,11 @@ class ReclaimProofRequest {
             ParamValidation(
                 paramName: 'acceptAiProviders',
                 input: options.acceptAiProviders),
+          ], 'the constructor');
+        }
+        if (options.useAppClip != null) {
+          validateFunctionParams([
+            ParamValidation(paramName: 'useAppClip', input: options.useAppClip),
           ], 'the constructor');
         }
         if (options.log != null) {
@@ -169,6 +177,8 @@ class ReclaimProofRequest {
         ParamValidation(
             paramName: 'sessionId', input: json['sessionId'], isString: true),
         ParamValidation(
+            paramName: 'sdkVersion', input: json['sdkVersion'], isString: true),
+        ParamValidation(
             paramName: 'timeStamp', input: json['timeStamp'], isString: true),
       ], 'fromJsonString');
 
@@ -203,6 +213,7 @@ class ReclaimProofRequest {
       proofRequestInstance._requestedProof =
           RequestedProof.fromJson(json['requestedProof']);
       proofRequestInstance._appCallbackUrl = json['appCallbackUrl'];
+      proofRequestInstance._sdkVersion = json['sdkVersion'];
       proofRequestInstance._redirectUrl = json['redirectUrl'];
       proofRequestInstance._signature = json['signature'];
       proofRequestInstance._timeStamp = json['timeStamp'];
@@ -330,12 +341,32 @@ class ReclaimProofRequest {
         parameters: getFilledParameters(requestedProof),
         redirectUrl: _redirectUrl ?? '',
         acceptAiProviders: _options?.acceptAiProviders ?? false,
+        sdkVersion: _sdkVersion ?? '',
       );
 
-      final link = await createLinkWithTemplateData(templateData);
-      logger.info('Request Url created successfully: $link');
       await updateSession(_sessionId, SessionStatus.SESSION_STARTED);
-      return link;
+      if (_options?.useAppClip == true) {
+        String template = Uri.encodeComponent(jsonEncode(templateData));
+        template = template.replaceAll('(', '%28').replaceAll(')', '%29');
+
+        // check if the device is running on iOS or Android
+        final isIos = Platform.isIOS;
+        if (!isIos) {
+          final instantAppUrl =
+              'https://share.reclaimprotocol.org/verify/?template=$template';
+          logger.info('Instant App Url created successfully: $instantAppUrl');
+          return instantAppUrl;
+        } else {
+          final appClipUrl =
+              'https://appclip.apple.com/id?p=org.reclaimprotocol.app.clip&template=$template';
+          logger.info('App Clip Url created successfully: $appClipUrl');
+          return appClipUrl;
+        }
+      } else {
+        final link = await createLinkWithTemplateData(templateData);
+        logger.info('Request Url created successfully: $link');
+        return link;
+      }
     } catch (error) {
       logger.info('Error creating Request Url: $error');
       rethrow;
@@ -343,7 +374,7 @@ class ReclaimProofRequest {
   }
 
   Future<void> startSession({
-    required Function(Proof) onSuccess,
+    required Function(dynamic) onSuccess,
     required Function(Exception) onError,
   }) async {
     if (_sessionId.isEmpty) {
@@ -363,16 +394,35 @@ class ReclaimProofRequest {
             SessionStatus.PROOF_GENERATION_FAILED.toString()) {
           throw providerFailedError('Provider failed to generate proof');
         }
-        if (statusResponse.session!.proofs!.isEmpty) return;
 
-        final proof = statusResponse.session!.proofs![0];
-        final verified = await verifyProof(proof);
-        if (!verified) {
-          logger.info('Proof not verified: $proof');
-          throw proofNotVerifiedError('Unable to verify proof');
+        // check if the callback url is default or not
+        final isDefaultCallbackUrl = getAppCallbackUrl() ==
+            '${Constants.DEFAULT_RECLAIM_CALLBACK_URL}$_sessionId';
+
+        if (isDefaultCallbackUrl) {
+          if (statusResponse.session!.proofs != null &&
+              statusResponse.session!.proofs!.isNotEmpty) {
+            final proof = statusResponse.session!.proofs![0];
+            final verified = await verifyProof(proof);
+            if (!verified) {
+              logger.info('Proof not verified: $proof');
+              throw proofNotVerifiedError('Unable to verify proof');
+            }
+            onSuccess(proof);
+            clearInterval(_intervals, _sessionId);
+          }
+        } else {
+          if (statusResponse.session!.statusV2 ==
+              SessionStatus.PROOF_SUBMISSION_FAILED.name) {
+            throw proofSubmissionFailedError('Proof submission failed');
+          }
+          if (statusResponse.session!.statusV2 ==
+              SessionStatus.PROOF_SUBMITTED.name) {
+            onSuccess(
+                'Proof submitted successfully to the custom callback url');
+            clearInterval(_intervals, _sessionId);
+          }
         }
-        onSuccess(proof);
-        clearInterval(_intervals, _sessionId);
       } catch (e) {
         logger.info('Error in startSession: $e');
         onError(e is Exception ? e : Exception(e.toString()));
@@ -413,6 +463,7 @@ class ReclaimProofRequest {
       'redirectUrl': _redirectUrl,
       'timeStamp': _timeStamp,
       'options': _options?.toJson(),
+      'sdkVersion': _sdkVersion,
     });
   }
 
