@@ -103,7 +103,7 @@ jobs:
           fi
           
           # Update changelog
-          dart update_changelog.dart
+          dart update_changelog.dart $NEW_VERSION
           
           # Commit changes
           git add pubspec.yaml CHANGELOG.md lib/utils/sdk_version.dart

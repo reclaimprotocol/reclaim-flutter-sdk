@@ -1,15 +1,18 @@
 import 'dart:io';
-import 'package:yaml/yaml.dart';
 
-void main() {
+void main(List<String> args) {
   try {
-    // Read pubspec.yaml
-    final pubspecFile = File('pubspec.yaml');
-    final pubspecContent = pubspecFile.readAsStringSync();
-    final pubspec = loadYaml(pubspecContent);
+    if (args.isEmpty) {
+      print('Error: Version number is required.');
+      print('Usage: dart update_changelog.dart <version>');
+      exit(1);
+    }
 
-    // Extract version
-    final version = pubspec['version'] ?? '0.0.0';
+    final version = args[0];
+    if (!RegExp(r'^\d+\.\d+\.\d+$').hasMatch(version)) {
+      print('Error: Version must be in format X.Y.Z (e.g., 1.0.0)');
+      exit(1);
+    }
 
     // Read CHANGELOG.md
     final changelogFile = File('CHANGELOG.md');
