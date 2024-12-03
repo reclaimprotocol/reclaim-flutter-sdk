@@ -27,7 +27,7 @@ class ReclaimLogger {
         lineLength: 50,
         colors: true,
         printEmojis: true,
-        dateTimeFormat: logger_package.DateTimeFormat.none,
+        printTime: false,
       ),
     );
   }
