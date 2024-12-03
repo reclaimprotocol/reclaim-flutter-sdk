@@ -27,7 +27,7 @@ class ReclaimLogger {
         lineLength: 50,
         colors: true,
         printEmojis: true,
-        printTime: false,
+        dateTimeFormat: logger_package.DateTimeFormat.none,
       ),
     );
   }
@@ -77,7 +77,7 @@ class ReclaimLogger {
   }
 
   void trace(dynamic message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.v(message, error: error, stackTrace: stackTrace);
+    _logger.t(message, error: error, stackTrace: stackTrace);
   }
 }
 

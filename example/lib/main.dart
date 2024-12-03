@@ -1,6 +1,7 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:reclaim_sdk/reclaim.dart';
-import 'package:reclaim_sdk/utils/interfaces.dart';
 import 'package:reclaim_sdk/utils/types.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -8,12 +9,14 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
-  runApp(MaterialApp(home: ReclaimExample()));
+  runApp(const MaterialApp(home: ReclaimExample()));
 }
 
 class ReclaimExample extends StatefulWidget {
+  const ReclaimExample({super.key});
+
   @override
-  _ReclaimExampleState createState() => _ReclaimExampleState();
+  State<ReclaimExample> createState() => _ReclaimExampleState();
 }
 
 class _ReclaimExampleState extends State<ReclaimExample> {
