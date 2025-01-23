@@ -1,6 +1,6 @@
 name: reclaim_sdk
 description: Reclaim SDK provides a way to let your users import data from other websites into your app in a secure, privacy preserving manner using zero knowledge proofs right in your Flutter Application.
-version: 2.1.2
+version: 2.2.0
 homepage: https://www.reclaimprotocol.org/
 repository: https://github.com/reclaimprotocol/reclaim-flutter-sdk.git
 
