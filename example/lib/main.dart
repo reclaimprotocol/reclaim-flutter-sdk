@@ -57,8 +57,8 @@ class _ReclaimExampleState extends State<ReclaimExample> {
       throw Exception('Environment variables are not set properly');
     }
 
-    final reclaimProofRequest = await ReclaimProofRequest.init(appId, appSecret,
-        providerId, ProofRequestOptions(log: true, useAppClip: false));
+    final reclaimProofRequest = await ReclaimProofRequest.init(
+        appId, appSecret, providerId, ProofRequestOptions(log: true));
 
     // reclaimProofRequest.addContext('0x00000000000', 'Example context message');
     // reclaimProofRequest.setRedirectUrl('https://dev.reclaimprotocol.org/');
@@ -103,8 +103,19 @@ class _ReclaimExampleState extends State<ReclaimExample> {
     if (proof is String) {
       proofDataValue = proof;
     } else {
-      proofDataValue =
-          'Extracted data: ${proof.claimData.context}\n\nFull proof: ${proof.toString()}';
+      // check if proof is of type List
+      if (proof is List) {
+        // extract claim data from each proof in a variable and then add it to the proofDataValue
+        var allProofs = '';
+        for (var proof in proof) {
+          allProofs += '${proof.claimData.context}\n\n';
+        }
+        proofDataValue =
+            'Extracted data: $allProofs\n\nFull proof: ${proof.toString()}';
+      } else {
+        proofDataValue =
+            'Extracted data: ${proof.claimData.context}\n\nFull proof: ${proof.toString()}';
+      }
     }
     setState(() {
       _status = 'Proof received!';

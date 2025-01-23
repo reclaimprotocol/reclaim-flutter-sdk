@@ -106,7 +106,7 @@ class CreateVerificationRequest {
       {required this.providerIds, this.applicationSecret});
 }
 
-typedef OnSuccess = void Function(Proof proof);
+typedef OnSuccess = void Function(dynamic proof);
 typedef OnError = void Function(Exception error);
 
 class StartSessionParams {
