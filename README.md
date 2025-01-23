@@ -118,8 +118,18 @@ class _ReclaimDemoState extends State<ReclaimDemo> {
     if (proof is String) {
       proofDataValue = proof;
     } else {
-      proofDataValue =
-          'Extracted data: ${proof.claimData.context}\n\nFull proof: ${proof.toString()}';
+      if (proof is List) {
+        // extract claim data from each proof in a variable and then add it to the proofDataValue
+        var allProofs = '';
+        for (var proof in proof) {
+          allProofs += '${proof.claimData.context}\n\n';
+        }
+        proofDataValue =
+            'Extracted data: $allProofs\n\nFull proof: ${proof.toString()}';
+      } else {
+        proofDataValue =
+            'Extracted data: ${proof.claimData.context}\n\nFull proof: ${proof.toString()}';
+      }
     }
     setState(() {
       _status = 'Proof received!';
