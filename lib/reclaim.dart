@@ -19,7 +19,25 @@ import 'utils/sdk_version.dart';
 
 var logger = ReclaimLogger();
 
-Future<bool> verifyProof(Proof proof) async {
+Future<bool> verifyProof(dynamic proofInput) async {
+  // Handle array of proofs
+  if (proofInput is List) {
+    try {
+      for (var proof in proofInput) {
+        bool isValid = await verifyProof(proof);
+        if (!isValid) {
+          return false;
+        }
+      }
+      return true;
+    } catch (e) {
+      logger.info('Error verifying array of proofs: ${e.toString()}');
+      return false;
+    }
+  }
+
+  // Handle single proof
+  final proof = proofInput as Proof;
   if (proof.signatures.isEmpty) {
     logger.info('No signatures');
     throw signatureNotFoundError('No signatures');
@@ -91,6 +109,8 @@ class ReclaimProofRequest {
   String? _redirectUrl;
   RequestedProof? _requestedProof;
   String? _sdkVersion;
+  int? _lastFailureTime;
+  final int _failureTimeout = 30000; // 30 seconds timeout, can be adjusted
 
   // Constructor
   ReclaimProofRequest._(this._applicationId, this._providerId, this._options) {
@@ -391,10 +411,24 @@ class ReclaimProofRequest {
         final statusResponse = await fetchStatusUrl(_sessionId);
 
         if (statusResponse.session == null) return;
+
+        // Check for failure status and handle timeout
         if (statusResponse.session!.statusV2 ==
-            SessionStatus.PROOF_GENERATION_FAILED.toString()) {
-          throw providerFailedError('Provider failed to generate proof');
+            SessionStatus.PROOF_GENERATION_FAILED.name) {
+          final currentTime = DateTime.now().millisecondsSinceEpoch;
+          if (_lastFailureTime == null) {
+            _lastFailureTime = currentTime;
+          } else if (currentTime - _lastFailureTime! >= _failureTimeout) {
+            clearInterval(_intervals, _sessionId);
+            onError(providerFailedError(
+                'Proof generation failed - timeout reached'));
+            return;
+          }
+          return; // Continue monitoring if under timeout
         }
+
+        // Reset failure time if status is not PROOF_GENERATION_FAILED
+        _lastFailureTime = null;
 
         // check if the callback url is default or not
         final isDefaultCallbackUrl = getAppCallbackUrl() ==
@@ -403,13 +437,17 @@ class ReclaimProofRequest {
         if (isDefaultCallbackUrl) {
           if (statusResponse.session!.proofs != null &&
               statusResponse.session!.proofs!.isNotEmpty) {
-            final proof = statusResponse.session!.proofs![0];
-            final verified = await verifyProof(proof);
+            final proofs = statusResponse.session!.proofs;
+            final verified = await verifyProof(proofs);
             if (!verified) {
-              logger.info('Proof not verified: $proof');
+              logger.info('Proof not verified: $proofs');
               throw proofNotVerifiedError('Unable to verify proof');
             }
-            onSuccess(proof);
+            if (proofs?.length == 1) {
+              onSuccess(proofs![0]);
+            } else {
+              onSuccess(proofs);
+            }
             clearInterval(_intervals, _sessionId);
           }
         } else {
