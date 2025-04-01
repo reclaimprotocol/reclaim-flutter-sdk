@@ -6,7 +6,6 @@ import 'package:reclaim_sdk/smart_contract.dart';
 import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:web3dart/crypto.dart';
 
-import 'interfaces.dart';
 import 'types.dart';
 import 'constants.dart';
 import 'errors.dart';
@@ -15,26 +14,6 @@ import '../witness.dart';
 import 'logger.dart';
 
 var logger = ReclaimLogger();
-
-RequestedProof generateRequestedProof(ProviderData provider) {
-  final Map<String, String> providerParams = {};
-  for (var rs in provider.responseSelections) {
-    final matches = RegExp(r'{{(.*?)}}').allMatches(rs.responseMatch);
-    for (var match in matches) {
-      providerParams[match.group(1)!] = '';
-    }
-  }
-
-  return RequestedProof(
-    url: provider.url,
-    parameters: providerParams,
-  );
-}
-
-Map<String, String> getFilledParameters(RequestedProof requestedProof) {
-  return Map.fromEntries(requestedProof.parameters.entries
-      .where((entry) => entry.value.isNotEmpty));
-}
 
 Future<String> getShortenedUrl(String url) async {
   logger.info('Attempting to shorten URL: $url');

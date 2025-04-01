@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
 import 'errors.dart';
-import 'interfaces.dart';
 import 'types.dart';
 import 'validation_utils.dart';
 import 'constants.dart';
@@ -25,7 +23,7 @@ Future<InitSessionResponse> initSession(
       .info('Initializing session for providerId: $providerId, appId: $appId');
   try {
     final response = await http.post(
-      Uri.parse('${Constants.BACKEND_BASE_URL}/api/sdk/init-session/'),
+      Uri.parse('${Constants.BACKEND_BASE_URL}/api/sdk/init/session/'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'providerId': providerId,
@@ -44,10 +42,7 @@ Future<InitSessionResponse> initSession(
           'Error initializing session with providerId: $providerId');
     }
 
-    return InitSessionResponse(
-      sessionId: res['sessionId'],
-      provider: ProviderData.fromJson(res['provider']),
-    );
+    return InitSessionResponse(sessionId: res['sessionId']);
   } catch (err) {
     logger.info({
       'message': 'Failed to initialize session',

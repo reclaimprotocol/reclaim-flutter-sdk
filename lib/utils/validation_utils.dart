@@ -32,6 +32,23 @@ void validateFunctionParams(List<ParamValidation> params, String functionName) {
   }
 }
 
+void validateParameters(Map<String, String> parameters) {
+  try {
+    for (var entry in parameters.entries) {
+      if (entry.key is! String || entry.value is! String) {
+        logger.info(
+            'Parameters validation failed: Provided parameters is not an object of key value pairs of string and string');
+        throw invalidParamError(
+            'The provided parameters is not an object of key value pairs of string and string');
+      }
+    }
+  } catch (e) {
+    logger.info('Parameters validation failed: ${e.toString()}');
+    throw invalidParamError(
+        'Invalid parameters passed to validateParameters.', e);
+  }
+}
+
 void validateURL(String url, String functionName) {
   try {
     Uri.parse(url);
@@ -71,22 +88,6 @@ void validateSignature(String providerId, String signature,
     logger.info('Signature validation failed: ${err.toString()}');
     throw invalidSignatureError(
         'Failed to validate signature: ${err.toString()}');
-  }
-}
-
-void validateRequestedProof(RequestedProof requestedProof) {
-  logger.info('Validating requested proof: $requestedProof');
-  if (requestedProof.url.isEmpty) {
-    logger.info(
-        'Requested proof validation failed: Provided url in requested proof is not valid');
-    throw invalidParamError('The provided url in requested proof is not valid');
-  }
-
-  if (requestedProof.parameters is! Map<String, dynamic>) {
-    logger.info(
-        'Requested proof validation failed: Provided parameters in requested proof is not valid');
-    throw invalidParamError(
-        'The provided parameters in requested proof is not valid');
   }
 }
 

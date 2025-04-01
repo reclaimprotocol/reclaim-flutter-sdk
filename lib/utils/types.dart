@@ -139,9 +139,8 @@ class ProofRequestOptions {
 
 class InitSessionResponse {
   final String sessionId;
-  final ProviderData provider;
 
-  InitSessionResponse({required this.sessionId, required this.provider});
+  InitSessionResponse({required this.sessionId});
 }
 
 class UpdateSessionResponse {

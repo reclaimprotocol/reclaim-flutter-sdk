@@ -26,8 +26,6 @@ ErrorConstructor _createErrorClass(String name) {
 final timeoutError = _createErrorClass('TimeoutError');
 final proofNotVerifiedError = _createErrorClass('ProofNotVerifiedError');
 final sessionNotStartedError = _createErrorClass('SessionNotStartedError');
-final providerNotFoundError = _createErrorClass('ProviderNotFoundError');
-final buildProofRequestError = _createErrorClass('BuildProofRequestError');
 final signatureGeneratingError = _createErrorClass('SignatureGeneratingError');
 final signatureNotFoundError = _createErrorClass('SignatureNotFoundError');
 final invalidSignatureError = _createErrorClass('InvalidSignatureError');
@@ -37,7 +35,6 @@ final providerFailedError = _createErrorClass('ProviderFailedError');
 final invalidParamError = _createErrorClass('InvalidParamError');
 final applicationError = _createErrorClass('ApplicationError');
 final initError = _createErrorClass('InitError');
-final availableParamsError = _createErrorClass('AvailableParamsError');
 final backendServerError = _createErrorClass('BackendServerError');
 final getStatusUrlError = _createErrorClass('GetStatusUrlError');
 final noProviderParamsError = _createErrorClass('NoProviderParamsError');

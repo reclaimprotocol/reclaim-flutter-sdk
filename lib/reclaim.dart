@@ -107,7 +107,7 @@ class ReclaimProofRequest {
   String? _signature;
   String? _appCallbackUrl;
   String? _redirectUrl;
-  RequestedProof? _requestedProof;
+  Map<String, String> _parameters = {};
   String? _sdkVersion;
   int? _lastFailureTime;
   final int _failureTimeout = 30000; // 30 seconds timeout, can be adjusted
@@ -173,8 +173,6 @@ class ReclaimProofRequest {
           proofRequestInstance._timeStamp, signature);
       proofRequestInstance._sessionId = data.sessionId;
 
-      await proofRequestInstance._buildProofRequest(data.provider);
-
       return proofRequestInstance;
     } catch (error) {
       logger.info('Error initializing ReclaimProofRequest: $error');
@@ -203,10 +201,9 @@ class ReclaimProofRequest {
             paramName: 'timeStamp', input: json['timeStamp'], isString: true),
       ], 'fromJsonString');
 
-      // parse the requested proof
-      final requestedProof = RequestedProof.fromJson(json['requestedProof']);
-
-      validateRequestedProof(requestedProof);
+      if (json['parameters'] != null) {
+        validateParameters(Map<String, String>.from(json['parameters']));
+      }
 
       if (json['redirectUrl'] != null) {
         validateURL(json['redirectUrl'], 'fromJsonString');
@@ -231,8 +228,9 @@ class ReclaimProofRequest {
 
       proofRequestInstance._sessionId = json['sessionId'];
       proofRequestInstance._context = Context.fromJson(json['context']);
-      proofRequestInstance._requestedProof =
-          RequestedProof.fromJson(json['requestedProof']);
+      proofRequestInstance._parameters = json['parameters'] != null
+          ? Map<String, String>.from(json['parameters'])
+          : {};
       proofRequestInstance._appCallbackUrl = json['appCallbackUrl'];
       proofRequestInstance._sdkVersion = json['sdkVersion'];
       proofRequestInstance._redirectUrl = json['redirectUrl'];
@@ -310,30 +308,8 @@ class ReclaimProofRequest {
 
   void setParams(Map<String, String> params) {
     try {
-      final requestedProof = _getRequestedProof();
-      if (_requestedProof == null) {
-        throw buildProofRequestError('Requested proof is not present.');
-      }
-
-      final currentParams = availableParams();
-      if (currentParams.isEmpty) {
-        throw noProviderParamsError(
-            'No params present in the provider config.');
-      }
-
-      final paramsToSet = params.keys.toList();
-      for (final param in paramsToSet) {
-        if (!currentParams.contains(param)) {
-          throw invalidParamError(
-              'Cannot set parameter $param for provider $_providerId. Available parameters: $currentParams');
-        }
-        // check if value is String
-        if (params[param] is! String) {
-          throw invalidParamError(
-              'Cannot set parameter $param for provider $_providerId. Value must be a string.');
-        }
-      }
-      _requestedProof!.parameters = {...requestedProof.parameters, ...params};
+      validateParameters(params);
+      _parameters = {..._parameters, ...params};
     } catch (error) {
       logger.info('Error Setting Params:', error);
       throw setParamsError("Error setting params", error);
@@ -348,7 +324,6 @@ class ReclaimProofRequest {
     }
 
     try {
-      final requestedProof = _getRequestedProof();
       validateSignature(_providerId, _signature!, _applicationId, _timeStamp);
 
       final templateData = TemplateData(
@@ -359,7 +334,7 @@ class ReclaimProofRequest {
         timestamp: _timeStamp,
         callbackUrl: getAppCallbackUrl(),
         context: jsonEncode(_context),
-        parameters: getFilledParameters(requestedProof),
+        parameters: _parameters,
         redirectUrl: _redirectUrl ?? '',
         acceptAiProviders: _options?.acceptAiProviders ?? false,
         sdkVersion: _sdkVersion ?? '',
@@ -473,30 +448,13 @@ class ReclaimProofRequest {
     scheduleIntervalEndingTask(_intervals, _sessionId, onError);
   }
 
-  List<String> availableParams() {
-    try {
-      final requestedProofs = _getRequestedProof();
-      final availableParamsStore =
-          Set<String>.from(requestedProofs.parameters.keys);
-      availableParamsStore.addAll(RegExp(r'{{(.*?)}}')
-          .allMatches(requestedProofs.url)
-          .map((m) => m.group(1)!)
-          .toList());
-
-      return availableParamsStore.toList();
-    } catch (error) {
-      logger.info("Error fetching available params", error);
-      throw availableParamsError("Error fetching available params", error);
-    }
-  }
-
   String toJsonString() {
     return jsonEncode({
       'applicationId': _applicationId,
       'providerId': _providerId,
       'sessionId': _sessionId,
       'context': _context.toJson(),
-      'requestedProof': _requestedProof?.toJson(),
+      'parameters': _parameters,
       'appCallbackUrl': _appCallbackUrl,
       'signature': _signature,
       'redirectUrl': _redirectUrl,
@@ -546,30 +504,6 @@ class ReclaimProofRequest {
           err);
       throw signatureGeneratingError(
           'Error generating signature for applicationSecret: $applicationSecret');
-    }
-  }
-
-  Future<RequestedProof> _buildProofRequest(ProviderData provider) async {
-    try {
-      _requestedProof = generateRequestedProof(provider);
-      return _requestedProof!;
-    } catch (err) {
-      logger.info(err.toString());
-      throw buildProofRequestError(
-          'Something went wrong while generating proof request', err);
-    }
-  }
-
-  RequestedProof _getRequestedProof() {
-    try {
-      if (_requestedProof == null) {
-        throw buildProofRequestError(
-            'RequestedProof is not present in the instance.');
-      }
-      return _requestedProof!;
-    } catch (error) {
-      logger.info("Error fetching requested proof", error);
-      throw getRequestedProofError("Error fetching requested proof", error);
     }
   }
 }
